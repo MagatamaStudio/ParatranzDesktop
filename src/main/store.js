@@ -128,8 +128,23 @@ function addUser(entry) {
   return { ok: true }
 }
 
+function normalizeUserKey(value) {
+  const text = String(value == null ? '' : value).trim()
+  if (!text) return ''
+  if (text.startsWith('id:')) {
+    const n = num(text.slice(3))
+    return n ? 'id:' + n : ''
+  }
+  if (text.startsWith('name:')) {
+    const name = text.slice(5).trim().toLowerCase()
+    return name ? 'name:' + name : ''
+  }
+  return num(text) ? 'id:' + num(text) : 'name:' + text.toLowerCase()
+}
+
 function removeUser(idOrName) {
-  const key = userKeyOf({ id: num(idOrName) }) || userKeyOf({ username: idOrName })
+  const key = normalizeUserKey(idOrName)
+  if (!key) return { ok: false, error: '无效的用户标识' }
   const before = doc.blocklist.users.length
   doc.blocklist.users = doc.blocklist.users.filter((u) => userKeyOf(u) !== key)
   reveal.userKeys.delete(key)
@@ -154,7 +169,9 @@ function revealProject(id) {
 }
 
 function revealUser(idOrName) {
-  const key = userKeyOf({ id: num(idOrName) }) || userKeyOf({ username: idOrName })
+  // 屏蔽管理里传的是已归一化的 key（id:123 / name:foo），这里必须原样认，
+  // 否则 userKeyOf 会把它当成用户名，解掉的是一条不存在的记录
+  const key = normalizeUserKey(idOrName)
   if (!key) return
   reveal.userKeys.add(key)
   emit()
