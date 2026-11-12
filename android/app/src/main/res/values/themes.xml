@@ -4,6 +4,8 @@
         <item name="colorPrimary">@color/pt_bar</item>
         <item name="colorPrimaryDark">@color/pt_bg</item>
         <item name="colorAccent">@color/pt_accent</item>
+        <!-- AppCompat 默认 56dp，压到 50dp（约薄 10%） -->
+        <item name="actionBarSize">50dp</item>
         <item name="android:windowBackground">@color/pt_bg</item>
         <item name="android:statusBarColor">@color/pt_bg</item>
     </style>
