@@ -1,7 +1,7 @@
 'use strict'
 
 const path = require('path')
-const { BrowserWindow, ipcMain, dialog, session, webContents } = require('electron')
+const { BrowserWindow, Menu, ipcMain, dialog, session, webContents } = require('electron')
 const pure = require('../shared/pure')
 const injector = require('./injector')
 const store = require('./store')
@@ -81,7 +81,9 @@ function createSiteWindow(options) {
     height: 860,
     backgroundColor: '#1e1e1e',
     title: 'Paratranz',
-    autoHideMenuBar: false,
+    // 原生菜单栏让位给页面顶部那条工具条（后退/前进/刷新/主页 + 菜单），
+    // 菜单本身还在，Alt 可以唤出，工具条右端的按钮也会弹同一份。
+    autoHideMenuBar: true,
     webPreferences: {
       preload: PRELOAD,
       partition: partitionFor(account),
@@ -105,6 +107,8 @@ function createSiteWindow(options) {
     injector.pushRules(win.webContents, rulesState())
     injector.upgradeCdp(win.webContents, rulesState())
   })
+  win.webContents.on('dom-ready', () => pushNavState(win.webContents))
+  win.webContents.on('did-navigate', () => pushNavState(win.webContents))
   win.on('focus', () => { focusedAccount = account })
   win.on('close', (e) => {
     if (quitting) return
@@ -227,6 +231,30 @@ function windowsFor(account) {
 
 function registerIpc() {
   ipcMain.on('shield:intent', (event, msg) => handleIntent(event, msg))
+  ipcMain.on('app:menu', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const menu = Menu.getApplicationMenu()
+    if (!win || win.isDestroyed() || !menu) return
+    menu.popup({ window: win })
+  })
+  ipcMain.on('nav:action', (event, action) => {
+    const wc = event.sender
+    if (!wc || wc.isDestroyed()) return
+    // 站点是 SPA，大部分前进后退只是同文档 history，Electron 的
+    // navigationHistory 看不到这类记录，交给页面自己的 history 执行。
+    if (action === 'back') wc.executeJavaScript('history.back()', true).catch(() => {})
+    else if (action === 'forward') wc.executeJavaScript('history.forward()', true).catch(() => {})
+    else if (action === 'reload') wc.reload()
+    else if (action === 'home') wc.loadURL(SITE)
+  })
+}
+
+function pushNavState(wc) {
+  if (!wc || wc.isDestroyed()) return
+  wc.send('nav:state', {
+    canGoBack: wc.navigationHistory.canGoBack(),
+    canGoForward: wc.navigationHistory.canGoForward()
+  })
 }
 
 function handleIntent(event, msg) {
