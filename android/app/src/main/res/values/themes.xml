@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Paratranz" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/pt_bar</item>
+        <item name="colorPrimaryDark">@color/pt_bg</item>
+        <item name="colorAccent">@color/pt_accent</item>
+        <item name="android:windowBackground">@color/pt_bg</item>
+        <item name="android:statusBarColor">@color/pt_bg</item>
+    </style>
+</resources>

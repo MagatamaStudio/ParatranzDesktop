@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Paratranz</string>
+    <string name="manage_title">屏蔽管理</string>
+    <string name="notify_channel_name">新消息与提醒</string>
+    <string name="notify_channel_desc">私信、站内消息与被审核提醒</string>
+    <string name="notify_service_title">Paratranz 提醒</string>
+    <string name="notify_service_text">正在监视新消息</string>
+    <string name="notify_service_stop">停止</string>
+</resources>

@@ -1,3 +1,11 @@
 node_modules/
 dist*/
 *.log
+android/.gradle/
+android/.kotlin/
+android/.idea/
+android/build/
+android/app/build/
+android/local.properties
+android/*.jks
+*.iml
