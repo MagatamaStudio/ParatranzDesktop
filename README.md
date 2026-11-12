@@ -90,7 +90,7 @@ android/ 下是一个只包了 WebView 的壳，屏蔽引擎和管理页直接�
     cd android
     ./gradlew :app:assembleDebug
 
-CI 每次推 main 都会出 debug 包；要出正式签名包，在仓库 Secrets 里配 PT_KEYSTORE_B64（keystore 文件的 base64）、PT_KEYSTORE_PASSWORD、PT_KEY_ALIAS、PT_KEY_PASSWORD，缺 PT_KEYSTORE_B64 时只出 debug 包。
+CI 每次推 main 都会出 debug 包；要出正式签名包，在仓库 Secrets 里配 PT_KEYSTORE_B64（keystore 文件的 base64）、PT_KEYSTORE_PASSWORD、PT_KEY_ALIAS、PT_KEY_PASSWORD，缺 PT_KEYSTORE_B64 时只出 debug 包。推一个 `v*` tag 会同时构建桌面端和 Android 签名包，并自动发 GitHub Release。
 
 ## 实现要点
 
