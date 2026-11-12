@@ -1,0 +1,72 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/inject/**'
+      - 'src/ui/**'
+      - '.github/workflows/android.yml'
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'src/inject/**'
+      - 'src/ui/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # release 签名：在仓库 Secrets 里配这四项，缺 PT_KEYSTORE_B64 时只出 debug 包
+      PT_KEYSTORE_B64: ${{ secrets.PT_KEYSTORE_B64 }}
+      PT_KEYSTORE_PASSWORD: ${{ secrets.PT_KEYSTORE_PASSWORD }}
+      PT_KEY_ALIAS: ${{ secrets.PT_KEY_ALIAS }}
+      PT_KEY_PASSWORD: ${{ secrets.PT_KEY_PASSWORD }}
+      PT_KEYSTORE: ${{ github.workspace }}/android/pt-release.jks
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-35
+            build-tools;35.0.0
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Assemble debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ParatranzDesktop-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Decode keystore
+        if: github.event_name != 'pull_request' && env.PT_KEYSTORE_B64 != ''
+        run: echo "$PT_KEYSTORE_B64" | base64 -d > "$PT_KEYSTORE"
+
+      - name: Assemble signed release APK
+        if: github.event_name != 'pull_request' && env.PT_KEYSTORE_B64 != ''
+        working-directory: android
+        run: ./gradlew :app:assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request' && env.PT_KEYSTORE_B64 != ''
+        with:
+          name: ParatranzDesktop-release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      - name: Skip note
+        if: github.event_name != 'pull_request' && env.PT_KEYSTORE_B64 == ''
+        run: echo "::warning::未配置 PT_KEYSTORE_B64 / PT_KEYSTORE_PASSWORD / PT_KEY_ALIAS / PT_KEY_PASSWORD，本次只出 debug 包"
