@@ -14,7 +14,7 @@
     "preselftest": "node scripts/ensure-electron.js",
     "selftest": "electron . --selftest",
     "test": "node test/run.js && node test/loader.js && node test/engine.js && node test/fetch.js && node test/notify.js && node test/injector.js && node test/plugins.js && node test/parity.js",
-    "dist": "electron-builder --win --x64"
+    "dist": "electron-builder --win --x64 --publish never"
   },
   "build": {
     "appId": "cn.paratranz.desktop",
