@@ -68,6 +68,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           path: assets
@@ -87,6 +89,15 @@ jobs:
           mkdir -p out
           cp assets/ParatranzDesktop-*.exe out/
           cp assets/app-release.apk "out/ParatranzDesktop-$VERSION-android.apk"
+          PREV="$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)"
+          RANGE="${PREV:+$PREV..}$GITHUB_REF_NAME"
+          {
+            echo "## 变更"
+            echo
+            git log "$RANGE" --no-merges --pretty='- %s'
+            echo
+            echo "**完整比较**：https://github.com/$GITHUB_REPOSITORY/compare/$RANGE"
+          } > notes.md
           gh release create "$GITHUB_REF_NAME" out/* \
             --title "Paratranz Desktop $VERSION" \
-            --generate-notes
+            --notes-file notes.md
